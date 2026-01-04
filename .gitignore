@@ -1,1 +1,15 @@
+# Secrets & Config
 .env
+
+# Database & Logs
+queries.sql
+
+# Python environment & cache
+__pycache__/
+*.py[cod]
+.venv/
+trailer_error.txt
+trailer_log.txt
+
+# IDEs
+.vscode/

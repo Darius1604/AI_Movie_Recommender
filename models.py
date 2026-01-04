@@ -1,4 +1,13 @@
-from sqlalchemy import Column, Integer, String, Text, Float, Date, JSON, ForeignKey
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    Float,
+    Date,
+    ForeignKey,
+)
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from database import Base, engine
 
@@ -22,7 +31,7 @@ class Movie(Base):
     tmdb_id = Column(Integer, unique=True, nullable=False)
     title = Column(String(255), nullable=False)
     overview = Column(Text)
-    genres = Column(JSON)
+    genres = Column(JSONB)
     poster_path = Column(String(255))
     backdrop_path = Column(String(255))
     popularity = Column(Float)
@@ -36,6 +45,15 @@ class Movie(Base):
 
     def __repr__(self):
         return f"<Movie(id={self.id}, title='{self.title}')>"
+
+
+class Genre(Base):
+    __tablename__ = "genres"
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50))
+
+    def __repr__(self):
+        return f"<Genre(id={self.id}, name='{self.name}')>"
 
 
 if __name__ == "__main__":
