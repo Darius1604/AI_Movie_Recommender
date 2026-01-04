@@ -1,8 +1,8 @@
 import os
 import requests
 from dotenv import load_dotenv
-from database import SessionLocal
-from models import Genre
+from backend.database import SessionLocal
+from backend.models import Genre
 
 load_dotenv()
 API_KEY = os.getenv("TMDB_API_KEY")

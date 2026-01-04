@@ -3,8 +3,8 @@ import requests
 import time
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
-from database import SessionLocal
-from models import Movie, MovieCategory
+from backend.database import SessionLocal
+from backend.models import Movie, MovieCategory
 
 load_dotenv()
 API_key = os.getenv("TMDB_API_KEY")

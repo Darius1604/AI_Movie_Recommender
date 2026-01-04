@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from database import SessionLocal
-from models import Movie, MovieCategory, Genre
+from backend.database import SessionLocal
+from backend.models import Movie, MovieCategory, Genre
 
 app = FastAPI()
 
