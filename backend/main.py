@@ -2,8 +2,17 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import SessionLocal
 from backend.models import Movie, MovieCategory, Genre
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Your frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # Dependency to get a DB session for each request
@@ -66,3 +75,26 @@ def get_by_genre(genre_id: int, db: Session = Depends(get_db)):
     movies = db.query(Movie).filter(Movie.genres.contains([genre_id])).limit(20).all()
 
     return {"genre_name": genre.name if genre else "Unknown", "movies": movies}
+
+
+# Search for movies by title
+@app.get("/movies/search")
+def search_movies(query: str, db: Session = Depends(get_db)):
+    return db.query(Movie).filter(Movie.title.ilike(f"%{query}%")).limit(10).all()
+
+
+# Get related movies (Basic logic: same genre)
+@app.get("/movies/{movie_id}/recommendations")
+def get_recommendations(movie_id: int, db: Session = Depends(get_db)):
+    movie = db.query(Movie).filter(Movie.id == movie_id).first()
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    return (
+        db.query(Movie)
+        .filter(Movie.id != movie_id)
+        .filter(Movie.genres.overlap(movie.genres))
+        .order_by(Movie.popularity.desc())
+        .limit(10)
+        .all()
+    )

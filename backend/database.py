@@ -3,9 +3,13 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, Column, Integer, String, Text, Float, Date, JSON
 from sqlalchemy.orm import declarative_base, sessionmaker
 import urllib.parse  # parser to handle the special characters
+from pathlib import Path
 
 # Load variables from .env file
-load_dotenv()
+base_path = Path(__file__).resolve().parent
+env_path = base_path / ".env"
+
+load_dotenv(dotenv_path=env_path)
 
 DB_HOST = os.getenv("DB_HOST")
 DB_NAME = os.getenv("DB_NAME")

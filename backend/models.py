@@ -38,6 +38,7 @@ class Movie(Base):
     vote_average = Column(Float)
     vote_count = Column(Integer)
     release_date = Column(Date, nullable=True)
+    runtime = Column(Integer, nullable=True)
     trailer_key = Column(String(255))
     categories = relationship(
         "MovieCategory", back_populates="movie", cascade="all, delete-orphan"
