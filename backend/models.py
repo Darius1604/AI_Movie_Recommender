@@ -9,7 +9,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
-from backend.database import Base, engine
+from database import Base, engine
 
 
 class MovieCategory(Base):

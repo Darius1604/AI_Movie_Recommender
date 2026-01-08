@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from backend.database import SessionLocal
-from backend.models import Movie, MovieCategory, Genre
+from database import SessionLocal
+from models import Movie, MovieCategory, Genre
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -98,3 +98,24 @@ def get_recommendations(movie_id: int, db: Session = Depends(get_db)):
         .limit(10)
         .all()
     )
+
+
+@app.get("/movies/{movie_id}")
+def get_movie_by_id(movie_id: int, db: Session = Depends(get_db)):
+    movie = db.query(Movie).filter(Movie.id == movie_id).first()
+
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    return movie
+
+
+@app.get("/movies/tmdb/{tmdb_id}")
+def get_movie_by_tmdb_id(tmdb_id: int, db: Session = Depends(get_db)):
+    """Get detailed information about a specific movie by TMDB ID"""
+    movie = db.query(Movie).filter(Movie.tmdb_id == tmdb_id).first()
+
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    return movie
