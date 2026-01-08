@@ -1,15 +1,23 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { Movie } from "@/types/movie";
 import { getPosterUrl } from "@/lib/api";
 import { formatDuration } from "@/lib/utils";
 import { Star, Clock, Calendar } from "lucide-react";
+import MovieModal from "./MovieModal";
 
 export default function MovieCard({ movie }: { movie: Movie }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
-    <Link href={`/movie/${movie.tmdb_id}`}>
-      <div className="group relative flex z-10 hover:z-50 flex-col transition-all duration-500 hover:-translate-y-3 cursor-pointer select-none">
-        <div className="relative aspect-[2/3] w-full overflow-hidden rounded-3xl bg-brand-surface ring-1 ring-white/10 shadow-2xl transition-all duration-500 hover:shadow-[0_0_40px_rgba(var(--brand-primary-rgb),0.4)] hover:ring-brand-primary/60">
+    <>
+      <div
+        onClick={() => setIsModalOpen(true)}
+        className="group relative flex z-10 hover:z-50 flex-col transition-all duration-500 hover:-translate-y-3 cursor-pointer select-none"
+      >
+        <div className="relative aspect-2/3 w-full overflow-hidden rounded-3xl bg-brand-surface ring-1 ring-white/10 shadow-2xl transition-all duration-500 hover:shadow-[0_0_40px_rgba(var(--brand-primary-rgb),0.4)] hover:ring-brand-primary/60">
           <Image
             src={getPosterUrl(movie.poster_path)}
             alt={movie.title}
@@ -50,6 +58,12 @@ export default function MovieCard({ movie }: { movie: Movie }) {
           {movie.title}
         </h3>
       </div>
-    </Link>
+
+      <MovieModal
+        movie={movie}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+    </>
   );
 }

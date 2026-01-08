@@ -7,7 +7,7 @@ from sqlalchemy import (
     Date,
     ForeignKey,
 )
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from database import Base, engine
 
@@ -31,7 +31,7 @@ class Movie(Base):
     tmdb_id = Column(Integer, unique=True, nullable=False)
     title = Column(String(255), nullable=False)
     overview = Column(Text)
-    genres = Column(JSONB)
+    genres = Column(ARRAY(Integer))
     poster_path = Column(String(255))
     backdrop_path = Column(String(255))
     popularity = Column(Float)

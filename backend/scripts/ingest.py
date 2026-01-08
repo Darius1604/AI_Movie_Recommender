@@ -3,8 +3,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from dotenv import load_dotenv
-from backend.database import SessionLocal
-from backend.models import Movie, MovieCategory
+from database import SessionLocal
+from models import Movie, MovieCategory
 
 load_dotenv()
 API_KEY = os.getenv("TMDB_API_KEY")
@@ -31,7 +31,7 @@ def ingest_movies():
 
     try:
         for category, max_pages in CATEGORY_LIMITS.items():
-            print(f"\n📂 Category: {category}")
+            print(f"\nCategory: {category}")
             for page in range(1, max_pages + 1):
                 url = f"https://api.themoviedb.org/3/movie/{category}"
                 params = {"api_key": API_KEY, "language": "en-US", "page": page}
@@ -96,7 +96,7 @@ def ingest_movies():
     finally:
         http.close()
         db.close()
-        print("\n✨ Ingestion completed!")
+        print("\nIngestion completed!")
 
 
 if __name__ == "__main__":

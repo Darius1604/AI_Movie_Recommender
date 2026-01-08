@@ -17,4 +17,4 @@ export async function getMovies(category: string): Promise<Movie[]> {
 }
 
 export const getPosterUrl = (path: string | null) =>
-  path ? `https://image.tmdb.org/t/p/w500${path}` : "/placeholder.png";
+  path ? `https://image.tmdb.org/t/p/w1280${path}` : "/placeholder.png";

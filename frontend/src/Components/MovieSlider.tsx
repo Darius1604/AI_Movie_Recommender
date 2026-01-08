@@ -53,7 +53,7 @@ export default function MovieSlider({
             1024: { slidesPerView: 4.5 },
             1280: { slidesPerView: 5.5 },
           }}
-          className="movie-swiper !overflow-visible slider-edge-mask"
+          className="movie-swiper overflow- slider-edge-mask"
         >
           {movies.map((movie) => (
             <SwiperSlide key={movie.id} className="pb-4">

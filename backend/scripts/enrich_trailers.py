@@ -1,7 +1,7 @@
 import os, time, requests
 from dotenv import load_dotenv
-from backend.database import SessionLocal
-from backend.models import Movie
+from database import SessionLocal
+from models import Movie
 
 load_dotenv()
 API_KEY = os.getenv("TMDB_API_KEY")

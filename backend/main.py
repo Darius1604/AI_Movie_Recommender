@@ -86,15 +86,23 @@ def search_movies(query: str, db: Session = Depends(get_db)):
 # Get related movies (Basic logic: same genre)
 @app.get("/movies/{movie_id}/recommendations")
 def get_recommendations(movie_id: int, db: Session = Depends(get_db)):
+    # 1. Fetch the movie first
     movie = db.query(Movie).filter(Movie.id == movie_id).first()
+
     if not movie:
         raise HTTPException(status_code=404, detail="Movie not found")
 
+    # 2. Check if genres exist and is a list
+    # If genres is null in Postgres, the overlap operator will fail.
+    if movie.genres is None or not isinstance(movie.genres, list):
+        return []
+
+    # 3. Use the Postgres '&&' operator via SQLAlchemy .overlap()
     return (
         db.query(Movie)
-        .filter(Movie.id != movie_id)
-        .filter(Movie.genres.overlap(movie.genres))
-        .order_by(Movie.popularity.desc())
+        .filter(Movie.id != movie_id)  # Don't recommend the same movie
+        .filter(Movie.genres.overlap(movie.genres))  # Postgres && operator
+        .order_by(Movie.popularity.desc())  # Recommend the best ones first
         .limit(10)
         .all()
     )

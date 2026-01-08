@@ -5,9 +5,9 @@ export default function Navbar() {
   return (
     <div className="relative w-full h-[55vh] flex flex-col items-center justify-center bg-brand-bg overflow-hidden">
       {/* Animated Background Grid */}
-      <div className="absolute inset-0 bg-gradient-to-b from-brand-accent/20 via-brand-bg to-brand-bg">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:44px_44px]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-bg via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-b from-brand-accent/20 via-brand-bg to-brand-bg">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-size-44px_44px]" />
+        <div className="absolute inset-0 bg-linear-to-t from-brand-bg via-transparent to-transparent" />
       </div>
 
       {/* Glowing Orbs */}
@@ -18,15 +18,15 @@ export default function Navbar() {
       <div className="relative z-10 text-center px-6 max-w-4xl">
         <div className="mb-4 flex justify-center">
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-brand-primary to-brand-secondary blur-xl opacity-50 rounded-full" />
-            <div className="relative bg-gradient-to-br from-brand-primary to-brand-secondary p-3 rounded-2xl shadow-2xl text-black">
+            <div className="absolute inset-0 bg-linear-to-r from-brand-primary to-brand-secondary blur-xl opacity-50 rounded-full" />
+            <div className="relative bg-linear-to-br from-brand-primary to-brand-secondary p-3 rounded-2xl shadow-2xl text-black">
               <Clapperboard size={32} />
             </div>
           </div>
         </div>
 
         <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tight">
-          <span className="bg-gradient-to-r from-white via-brand-primary to-brand-secondary bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-white via-brand-primary to-brand-secondary bg-clip-text text-transparent">
             AI Movie Recommendations
           </span>
         </h1>
@@ -38,13 +38,13 @@ export default function Navbar() {
 
         {/* Decorative Line */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="h-px w-12 bg-gradient-to-r from-transparent to-brand-primary" />
+          <div className="h-px w-12 bg-linear-to-r from-transparent to-brand-primary" />
           <div className="flex gap-1">
             <div className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse" />
             <div className="w-1.5 h-1.5 rounded-full bg-brand-secondary animate-pulse delay-150" />
             <div className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse delay-300" />
           </div>
-          <div className="h-px w-12 bg-gradient-to-l from-transparent to-brand-secondary" />
+          <div className="h-px w-12 bg-linear-to-l from-transparent to-brand-secondary" />
         </div>
       </div>
 
@@ -52,7 +52,7 @@ export default function Navbar() {
       <div className="relative z-10 flex items-center gap-1 bg-brand-surface/60 backdrop-blur-xl p-1 rounded-full border border-white/5 shadow-2xl shadow-brand-primary/5">
         <Link
           href="/"
-          className="px-6 py-2.5 rounded-full bg-gradient-to-r from-brand-primary to-brand-secondary text-black text-sm font-bold flex items-center gap-2 shadow-lg shadow-brand-primary/20 transition-all duration-300 hover:scale-105"
+          className="px-6 py-2.5 rounded-full bg-linear-to-r from-brand-primary to-brand-secondary text-black text-sm font-bold flex items-center gap-2 shadow-lg shadow-brand-primary/20 transition-all duration-300 hover:scale-105"
         >
           <Home size={16} /> Home
         </Link>
@@ -70,7 +70,7 @@ export default function Navbar() {
         </Link>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-brand-bg via-brand-bg/80 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-brand-bg via-brand-bg/80 to-transparent" />
     </div>
   );
 }
