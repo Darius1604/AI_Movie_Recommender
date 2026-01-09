@@ -1,20 +1,29 @@
-import { getMovies } from "@/lib/api";
-import Navbar from "@/Components/Navbar";
-import MovieSlider from "@/Components/MovieSlider";
-export default async function HomePage() {
-  const [trending, topRated] = await Promise.all([
-    getMovies("trending"),
-    getMovies("top-rated"),
-  ]);
+"use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+export default function RootPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check if user is logged in OR came from guest mode
+    const token = localStorage.getItem("token");
+    const isGuest = sessionStorage.getItem("guest_mode");
+
+    if (token || isGuest) {
+      // User is logged in or is a guest, go to home
+      router.push("/home");
+    } else {
+      // User is not logged in and not a guest, go to login
+      router.push("/login");
+    }
+  }, [router]);
+
+  // Show loading spinner while checking auth
   return (
-    <main className="min-h-screen bg-brand-bg text-white pb-20">
-      <Navbar />
-
-      <div className="max-w-350 mx-auto px-6 md:px-12 mt--12.5 relative z-20 space-y-0">
-        <MovieSlider movies={trending} title="Trending Now" iconName="flame" />
-        <MovieSlider movies={topRated} title="Top Rated" iconName="star" />
-      </div>
-    </main>
+    <div className="min-h-screen bg-[#050a12] flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#38bdf8]"></div>
+    </div>
   );
 }

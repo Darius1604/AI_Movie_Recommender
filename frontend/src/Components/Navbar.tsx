@@ -1,18 +1,95 @@
+"use client";
+
 import Link from "next/link";
-import { Home, Compass, Heart, Clapperboard } from "lucide-react";
+import {
+  Home,
+  Compass,
+  Heart,
+  Clapperboard,
+  User,
+  LogOut,
+  LogIn,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
+  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
+
+  useEffect(() => {
+    // Check if user is logged in or is a guest
+    const token = localStorage.getItem("token");
+    const guestMode = sessionStorage.getItem("guest_mode");
+
+    setIsLoggedIn(!!token);
+    setIsGuest(!!guestMode && !token);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("guest_mode");
+    router.push("/login");
+  };
+
   return (
     <div className="relative w-full h-[55vh] flex flex-col items-center justify-center bg-brand-bg overflow-hidden">
       {/* Animated Background Grid */}
       <div className="absolute inset-0 bg-linear-to-b from-brand-accent/20 via-brand-bg to-brand-bg">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-size-44px_44px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:44px_44px]" />
         <div className="absolute inset-0 bg-linear-to-t from-brand-bg via-transparent to-transparent" />
       </div>
 
       {/* Glowing Orbs */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-primary/20 rounded-full blur-3xl animate-pulse" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-brand-secondary/20 rounded-full blur-3xl animate-pulse delay-1000" />
+
+      {/* Auth Buttons - Top Right */}
+      <div className="absolute top-6 right-6 z-20 flex items-center gap-3">
+        {isLoggedIn ? (
+          <>
+            <Link
+              href="/profile"
+              className="px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full text-white text-sm font-semibold flex items-center gap-2 hover:bg-white/10 transition-all duration-300 hover:scale-105"
+            >
+              <User size={16} />
+              Profile
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-500/10 backdrop-blur-md border border-red-500/20 rounded-full text-red-400 text-sm font-semibold flex items-center gap-2 hover:bg-red-500/20 transition-all duration-300 hover:scale-105"
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
+          </>
+        ) : isGuest ? (
+          <>
+            <Link
+              href="/login"
+              className="px-6 py-2 bg-gradient-to-r from-brand-primary to-brand-secondary backdrop-blur-md rounded-full text-black text-sm font-bold flex items-center gap-2 shadow-lg hover:shadow-brand-primary/20 transition-all duration-300 hover:scale-105"
+            >
+              <LogIn size={16} />
+              Sign In
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full text-zinc-400 text-sm font-semibold flex items-center gap-2 hover:bg-white/10 transition-all duration-300 hover:scale-105 cursor-pointer"
+            >
+              <LogOut size={16} />
+              Exit Guest
+            </button>
+          </>
+        ) : (
+          <Link
+            href="/login"
+            className="px-6 py-2 bg-gradient-to-r from-brand-primary to-brand-secondary backdrop-blur-md rounded-full text-black text-sm font-bold flex items-center gap-2 shadow-lg hover:shadow-brand-primary/20 transition-all duration-300 hover:scale-105"
+          >
+            Sign In
+          </Link>
+        )}
+      </div>
 
       {/* Hero Content */}
       <div className="relative z-10 text-center px-6 max-w-4xl">
@@ -51,7 +128,7 @@ export default function Navbar() {
       {/* Floating Pill Navigation */}
       <div className="relative z-10 flex items-center gap-1 bg-brand-surface/60 backdrop-blur-xl p-1 rounded-full border border-white/5 shadow-2xl shadow-brand-primary/5">
         <Link
-          href="/"
+          href="/home"
           className="px-6 py-2.5 rounded-full bg-linear-to-r from-brand-primary to-brand-secondary text-black text-sm font-bold flex items-center gap-2 shadow-lg shadow-brand-primary/20 transition-all duration-300 hover:scale-105"
         >
           <Home size={16} /> Home

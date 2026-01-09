@@ -1,0 +1,39 @@
+# TMDB Genre IDs Mapping
+# Add this reference to your backend documentation or as a comment
+
+GENRE_MAPPING = {
+    28: "Action",
+    12: "Adventure",
+    16: "Animation",
+    35: "Comedy",
+    80: "Crime",
+    99: "Documentary",
+    18: "Drama",
+    10751: "Family",
+    14: "Fantasy",
+    36: "History",
+    27: "Horror",
+    10402: "Music",
+    9648: "Mystery",
+    10749: "Romance",
+    878: "Science Fiction",
+    10770: "TV Movie",
+    53: "Thriller",
+    10752: "War",
+    37: "Western"
+}
+
+# Mood to Genre Mapping
+MOOD_GENRES = {
+    "happy": [35, 10751, 16],  # Comedy, Family, Animation
+    "excited": [28, 12, 878],  # Action, Adventure, Sci-Fi
+    "relaxed": [10749, 35, 10402],  # Romance, Comedy, Music
+    "thoughtful": [18, 36, 99],  # Drama, History, Documentary
+    "romantic": [10749, 18],  # Romance, Drama
+    "adventurous": [12, 14, 28],  # Adventure, Fantasy, Action
+    "sad": [35, 16, 10751],  # Comedy, Animation, Family
+    "intense": [53, 80, 28],  # Thriller, Crime, Action
+    "silly": [35, 16, 10770],  # Comedy, Animation, TV Movie
+    "sleepy": [16, 14, 10751],  # Animation, Fantasy, Family
+    "inspired": [18, 36, 10752],  # Drama, History, War
+}
