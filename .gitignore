@@ -13,3 +13,12 @@ trailer_log.txt
 
 # IDEs
 .vscode/
+
+node_modules/
+.next/
+out/
+build/
+.env*
+*.log
+
+*.pkl

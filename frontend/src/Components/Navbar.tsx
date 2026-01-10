@@ -37,7 +37,7 @@ export default function Navbar() {
     <div className="relative w-full h-[55vh] flex flex-col items-center justify-center bg-brand-bg overflow-hidden">
       {/* Animated Background Grid */}
       <div className="absolute inset-0 bg-linear-to-b from-brand-accent/20 via-brand-bg to-brand-bg">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:44px_44px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-size-44px_44px" />
         <div className="absolute inset-0 bg-linear-to-t from-brand-bg via-transparent to-transparent" />
       </div>
 
@@ -68,7 +68,7 @@ export default function Navbar() {
           <>
             <Link
               href="/login"
-              className="px-6 py-2 bg-gradient-to-r from-brand-primary to-brand-secondary backdrop-blur-md rounded-full text-black text-sm font-bold flex items-center gap-2 shadow-lg hover:shadow-brand-primary/20 transition-all duration-300 hover:scale-105"
+              className="px-6 py-2 bg-linear-to-r from-brand-primary to-brand-secondary backdrop-blur-md rounded-full text-black text-sm font-bold flex items-center gap-2 shadow-lg hover:shadow-brand-primary/20 transition-all duration-300 hover:scale-105"
             >
               <LogIn size={16} />
               Sign In
@@ -84,7 +84,7 @@ export default function Navbar() {
         ) : (
           <Link
             href="/login"
-            className="px-6 py-2 bg-gradient-to-r from-brand-primary to-brand-secondary backdrop-blur-md rounded-full text-black text-sm font-bold flex items-center gap-2 shadow-lg hover:shadow-brand-primary/20 transition-all duration-300 hover:scale-105"
+            className="px-6 py-2 bg-linear-to-r from-brand-primary to-brand-secondary backdrop-blur-md rounded-full text-black text-sm font-bold flex items-center gap-2 shadow-lg hover:shadow-brand-primary/20 transition-all duration-300 hover:scale-105"
           >
             Sign In
           </Link>

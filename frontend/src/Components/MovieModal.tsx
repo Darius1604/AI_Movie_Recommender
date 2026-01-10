@@ -3,18 +3,12 @@
 import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
-import {
-  X,
-  Star,
-  Clock,
-  Calendar,
-  Play,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { X, Star, Clock, Calendar } from "lucide-react";
 import { Movie } from "@/types/movie";
 import { getPosterUrl } from "@/lib/api";
 import { formatDuration } from "@/lib/utils";
+// 1. Import your MovieSlider component
+import MovieSlider from "./MovieSlider";
 
 interface MovieModalProps {
   movie: Movie;
@@ -32,8 +26,7 @@ export default function MovieModal({
   const [mounted, setMounted] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const recommendationsScrollRef = useRef<HTMLDivElement>(null);
-  const scrollPositionRef = useRef(0); // Track scroll position to prevent jump
+  const scrollPositionRef = useRef(0);
 
   useEffect(() => {
     setMounted(true);
@@ -47,13 +40,11 @@ export default function MovieModal({
 
   useEffect(() => {
     if (isOpen) {
-      // 1. Save the current scroll position
       scrollPositionRef.current = window.scrollY;
 
       const scrollBarWidth =
         window.innerWidth - document.documentElement.clientWidth;
 
-      // 2. Lock the body but keep the visual position
       document.body.style.overflow = "hidden";
       document.body.style.position = "fixed";
       document.body.style.top = `-${scrollPositionRef.current}px`;
@@ -63,15 +54,18 @@ export default function MovieModal({
         document.body.style.paddingRight = `${scrollBarWidth}px`;
       }
 
-      // Fetch recommendations
-      fetch(`http://localhost:8000/movies/${activeMovie.id}/recommendations`)
+      // 2. Fetch recommendations using the object-safe key 'similar_movies'
+      fetch(`http://localhost:8000/movies/similar/${activeMovie.id}`)
         .then((res) => res.json())
-        .then((data) => setRecommendations(data.slice(0, 12)))
+        .then((data) => {
+          if (data.similar_movies) {
+            setRecommendations(data.similar_movies);
+          }
+        })
         .catch((err) => console.error("Error fetching recommendations:", err));
 
       scrollContainerRef.current?.scrollTo({ top: 0, behavior: "instant" });
     } else {
-      // 3. Reset body styles and restore scroll position
       const scrollY = scrollPositionRef.current;
 
       document.body.style.overflow = "";
@@ -97,20 +91,7 @@ export default function MovieModal({
     return `https://www.youtube.com/embed/${trailerKey}?autoplay=0&rel=0&modestbranding=1`;
   };
 
-  const scrollRecommendations = (direction: "left" | "right") => {
-    if (recommendationsScrollRef.current) {
-      const scrollAmount = 300;
-      const newScrollLeft =
-        direction === "left"
-          ? recommendationsScrollRef.current.scrollLeft - scrollAmount
-          : recommendationsScrollRef.current.scrollLeft + scrollAmount;
-
-      recommendationsScrollRef.current.scrollTo({
-        left: newScrollLeft,
-        behavior: "smooth",
-      });
-    }
-  };
+  // 3. Removed the manual scrollRecommendations function and ref
 
   if (!isOpen || !mounted) return null;
 
@@ -133,7 +114,7 @@ export default function MovieModal({
           <X size={20} className="text-white" />
         </button>
 
-        {/* Hero Section */}
+        {/* Hero Section remains same ... */}
         <div className="relative h-[50vh] w-full overflow-hidden rounded-t-3xl">
           <Image
             src={
@@ -186,14 +167,6 @@ export default function MovieModal({
                       </span>
                     </div>
                   )}
-                  {activeMovie.release_date && (
-                    <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
-                      <Calendar size={16} className="text-zinc-400" />
-                      <span className="font-semibold text-white">
-                        {activeMovie.release_date.split("-")[0]}
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -201,7 +174,6 @@ export default function MovieModal({
         </div>
 
         <div className="p-8 space-y-6">
-          {/* YouTube Trailer */}
           {activeMovie.trailer_key && (
             <div>
               <h3 className="text-xl font-bold text-white mb-4">Trailer</h3>
@@ -224,78 +196,15 @@ export default function MovieModal({
             </p>
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 bg-white/5 rounded-xl border border-white/10 text-center">
-              <p className="text-xs text-zinc-500 mb-1">Rating</p>
-              <p className="text-lg font-bold text-white">
-                {activeMovie.vote_average.toFixed(1)}/10
-              </p>
-            </div>
-            <div className="p-4 bg-white/5 rounded-xl border border-white/10 text-center">
-              <p className="text-xs text-zinc-500 mb-1">Votes</p>
-              <p className="text-lg font-bold text-white">
-                {activeMovie.vote_count.toLocaleString()}
-              </p>
-            </div>
-            <div className="p-4 bg-white/5 rounded-xl border border-white/10 text-center">
-              <p className="text-xs text-zinc-500 mb-1">Popularity</p>
-              <p className="text-lg font-bold text-white">
-                {activeMovie.popularity.toFixed(0)}
-              </p>
-            </div>
-            <div className="p-4 bg-white/5 rounded-xl border border-white/10 text-center">
-              <p className="text-xs text-zinc-500 mb-1">Year</p>
-              <p className="text-lg font-bold text-white">
-                {activeMovie.release_date?.split("-")[0]}
-              </p>
-            </div>
-          </div>
-
-          {/* Recommendations */}
+          {/* 4. Use MovieSlider for Recommendations */}
           {recommendations.length > 0 && (
-            <div>
-              <h3 className="text-xl font-bold text-white mb-4">
-                You Might Also Like
-              </h3>
-              <div className="relative group">
-                <button
-                  onClick={() => scrollRecommendations("left")}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center bg-black/80 rounded-full border border-white/20 opacity-0 group-hover:opacity-100 transition-all -translate-x-1/2"
-                >
-                  <ChevronLeft size={20} className="text-white" />
-                </button>
-
-                <div
-                  ref={recommendationsScrollRef}
-                  className="flex gap-4 overflow-x-auto scrollbar-hide snap-x pb-4"
-                  style={{ scrollbarWidth: "none" }}
-                >
-                  {recommendations.map((rec) => (
-                    <div
-                      key={rec.id}
-                      className="flex-shrink-0 w-[150px] snap-start cursor-pointer hover:scale-105 transition-transform duration-300"
-                      onClick={() => setActiveMovie(rec)}
-                    >
-                      <div className="relative aspect-[2/3] rounded-xl overflow-hidden ring-1 ring-white/10">
-                        <Image
-                          src={getPosterUrl(rec.poster_path)}
-                          alt={rec.title}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => scrollRecommendations("right")}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center bg-black/80 rounded-full border border-white/20 opacity-0 group-hover:opacity-100 transition-all translate-x-1/2"
-                >
-                  <ChevronRight size={20} className="text-white" />
-                </button>
-              </div>
+            <div className="mt-10">
+              <MovieSlider
+                movies={recommendations}
+                title="You Might Also Like"
+                iconName="star"
+                isModal={true}
+              />
             </div>
           )}
         </div>

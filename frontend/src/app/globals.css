@@ -31,6 +31,7 @@ body::-webkit-scrollbar {
   overflow: visible !important;
   padding-top: 20px !important;
   padding-bottom: 20px !important;
+  position: relastive;
 }
 
 .swiper-button-next,
@@ -45,7 +46,26 @@ body::-webkit-scrollbar {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  top: 42% !important;
+  margin: 0 !important;
+  transition: all 0.3s ease !important;
   z-index: 100;
+}
+
+.page-slider .swiper-button-next {
+  right: 45px !important; /* Move outside the grid */
+}
+.page-slider .swiper-button-prev {
+  left: 20px !important;
+}
+
+.modal-slider .swiper-button-next {
+  right: 35px !important; /* Keep inside modal padding */
+  background: rgba(0, 0, 0, 0.7) !important; /* Darker for contrast */
+}
+.modal-slider .swiper-button-prev {
+  left: 15px !important;
+  background: rgba(0, 0, 0, 0.7) !important;
 }
 
 .swiper-button-next:after,
@@ -59,22 +79,22 @@ body::-webkit-scrollbar {
 .swiper-button-prev:hover {
   background: var(--color-brand-primary) !important;
   color: #000 !important;
+  transform: scale(1.1);
   box-shadow: 0 0 20px rgba(56, 189, 248, 0.5) !important;
 }
 
-.swiper-button-next {
-  right: 80px !important;
-}
-.swiper-button-prev {
-  left: 30px !important;
+@media (max-width: 1280px) {
+  .page-slider .swiper-button-next,
+  .page-slider .swiper-button-prev {
+    right: 10px !important;
+    left: 10px !important;
+  }
 }
 
-@media (max-width: 1536px) {
-  .swiper-button-next {
-    right: -40px !important;
-  }
+@media (max-width: 768px) {
+  .swiper-button-next,
   .swiper-button-prev {
-    left: -40px !important;
+    display: none !important;
   }
 }
 
@@ -92,19 +112,47 @@ body::-webkit-scrollbar {
     );
   }
 
-  .slider-edge-mask {
-    mask-image: linear-gradient(
-      to right,
-      black 0%,
-      black 85%,
-      transparent 100%
-    );
-    -webkit-mask-image: linear-gradient(
-      to right,
-      black 0%,
-      black 85%,
-      transparent 100%
-    );
+  @layer utilities {
+    /* The container that handles the masking */
+    .slider-mask-container {
+      --mask-start: transparent;
+      --mask-end: transparent;
+
+      /* Default: Both sides faded */
+      mask-image: linear-gradient(
+        to right,
+        var(--mask-start) 0%,
+        black 10%,
+        black 90%,
+        var(--mask-end) 100%
+      );
+      -webkit-mask-image: linear-gradient(
+        to right,
+        var(--mask-start) 0%,
+        black 10%,
+        black 90%,
+        var(--mask-end) 100%
+      );
+      transition: mask-image 0.3s ease;
+    }
+
+    /* When at the start: Left is solid black (no fade) */
+    .slider-mask-container.is-at-start {
+      --mask-start: black;
+      --mask-end: transparent;
+    }
+
+    /* When at the end: Right is solid black (no fade) */
+    .slider-mask-container.is-at-end {
+      --mask-start: transparent;
+      --mask-end: black;
+    }
+
+    /* When list is too small to scroll: No fading at all */
+    .slider-mask-container.is-at-start.is-at-end {
+      mask-image: none !important;
+      -webkit-mask-image: none !important;
+    }
   }
 
   .no-scrollbar {

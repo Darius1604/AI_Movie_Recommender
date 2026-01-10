@@ -1,26 +1,39 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from datetime import datetime, timedelta
+from fastapi import FastAPI, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from models import Movie, MovieCategory, Genre
+from models import Movie, MovieCategory, Genre, User
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Query
 from fastapi.security import OAuth2PasswordRequestForm
-from models import User
 import schemas
 import auth
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+import pickle
+import os
+from sentence_transformers import SentenceTransformer
+import random
+from sqlalchemy.sql.expression import func
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Your frontend URL
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Load a pre-trained semantic model
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# Dependency to get a DB session for each request
+# Global variables for the recommendation engine
+movie_embeddings = None
+movie_id_to_index = {}
+index_to_movie_id = {}
+
+
 def get_db():
     db = SessionLocal()
     try:
@@ -29,71 +42,106 @@ def get_db():
         db.close()
 
 
-# Helper function to reduce code repetition
-def get_movies_by_category(category: str, db: Session, limit: int = 20):
-    return (
-        db.query(Movie)
-        .join(MovieCategory)
-        .filter(MovieCategory.category_name == category)
-        .order_by(Movie.popularity.desc())
-        .limit(limit)
-        .all()
-    )
+def initialize_recommendation_system(db: Session):
+    """
+    Initialize system by encoding movie metadata into semantic vectors.
+    """
+    global movie_embeddings, movie_id_to_index, index_to_movie_id
+
+    # Load from cache if it exists to save startup time
+    if os.path.exists("movie_embeddings.pkl"):
+        print("Loading cached embeddings...")
+        with open("movie_embeddings.pkl", "rb") as f:
+            cache = pickle.load(f)
+            movie_embeddings = cache["embeddings"]
+            movie_id_to_index = cache["id_to_index"]
+            index_to_movie_id = cache["index_to_id"]
+        print("Embeddings loaded from cache!")
+        return
+
+    print("Building semantic movie embeddings (this may take a minute)...")
+    movies = db.query(Movie).all()
+    genres = db.query(Genre).all()
+    genre_map = {g.id: g.name for g in genres}
+
+    movie_texts = []
+    movie_ids = []
+
+    for movie in movies:
+        genre_names = " ".join([genre_map.get(gid, "") for gid in (movie.genres or [])])
+        # We build a natural language description for the AI to "read"
+        text = f"Title: {movie.title}. Genres: {genre_names}. Overview: {movie.overview or ''}"
+        movie_texts.append(text)
+        movie_ids.append(movie.id)
+
+    # Encode all texts into a dense vector matrix (Sample count x 384 dimensions)
+    movie_embeddings = model.encode(movie_texts, show_progress_bar=True)
+
+    movie_id_to_index = {movie_id: idx for idx, movie_id in enumerate(movie_ids)}
+    index_to_movie_id = {idx: movie_id for idx, movie_id in enumerate(movie_ids)}
+
+    with open("movie_embeddings.pkl", "wb") as f:
+        pickle.dump(
+            {
+                "embeddings": movie_embeddings,
+                "id_to_index": movie_id_to_index,
+                "index_to_id": index_to_movie_id,
+            },
+            f,
+        )
+    print(f"Embeddings built for {len(movies)} movies!")
+
+
+@app.on_event("startup")
+async def startup_event():
+    db = SessionLocal()
+    try:
+        initialize_recommendation_system(db)
+    finally:
+        db.close()
+
+
+@app.get("/movies/ai-recommend")
+def ai_recommend_movies(
+    query: str = Query(..., description="User's mood or preference description"),
+    limit: int = Query(20, ge=1, le=50),
+    db: Session = Depends(get_db),
+):
+    global movie_embeddings, movie_id_to_index, index_to_movie_id
+
+    if movie_embeddings is None:
+        initialize_recommendation_system(db)
+
+    # Encode user query into the same semantic space
+    query_embedding = model.encode([query])
+    similarities = cosine_similarity(query_embedding, movie_embeddings)[0]
+
+    # Sort indices by highest similarity
+    top_indices = np.argsort(similarities)[::-1][:limit]
+    recommended_movie_ids = [index_to_movie_id[idx] for idx in top_indices]
+
+    # Fetch movie data and maintain similarity order
+    movies = db.query(Movie).filter(Movie.id.in_(recommended_movie_ids)).all()
+    movie_dict = {movie.id: movie for movie in movies}
+
+    results = [movie_dict[mid] for mid in recommended_movie_ids if mid in movie_dict]
+    return {"results": results}
 
 
 @app.get("/movies/recommend")
 def recommend_by_mood(mood: str = Query(...), db: Session = Depends(get_db)):
-    mood_query = mood.lower()
-
-    # 1. MAPPING LOGIC (Level 1 AI)
-    # We define keywords that correlate to genres or plot elements
-    mood_map = {
-        "happy": [35, 10751, 16],  # Comedy, Family, Animation
-        "excited": [28, 12, 878],  # Action, Adventure, Sci-Fi
-        "relaxed": [10749, 35, 10402],  # Romance, Comedy, Music
-        "thoughtful": [18, 36, 99],  # Drama, History, Documentary
-        "romantic": [10749],  # Romance, Drama
-        "adventurous": [12, 14, 28],  # Adventure, Fantasy, Action
-        "need cheering up": [35, 16, 10751],  # Comedy, Animation, Family
-        "want intensity": [53, 80, 28],  # Thriller, Crime, Action
-        "silly": [35, 16, 10770],  # Comedy, Animation, TV Movie
-        "before sleep": [16, 14, 10751],  # Animation, Fantasy, Family
-        "need inspiration": [18, 36, 10752],  # Drama, History, War
-    }
-
-    # Identify which genre IDs to look for based on the string
-    target_genres = []
-    for key, genres in mood_map.items():
-        if key in mood_query:
-            target_genres.extend(genres)
-
-    # 2. DATABASE QUERY
-    query = db.query(Movie)
-
-    if target_genres:
-        # Postgres overlap (&&) to find movies containing any of these genre IDs
-        query = query.filter(Movie.genres.overlap(list(set(target_genres))))
-    else:
-        # Fallback: if it's a custom string (e.g. "Space adventures"),
-        # try searching the overview or title
-        query = query.filter(
-            (Movie.overview.ilike(f"%{mood}%")) | (Movie.title.ilike(f"%{mood}%"))
-        )
-
-    movies = query.order_by(Movie.popularity.desc()).limit(20).all()
-
-    return {"mood": mood, "movies": movies}
+    """Legacy endpoint wrapper for the AI engine."""
+    res = ai_recommend_movies(query=mood, limit=20, db=db)
+    return {"movies": res["results"]}
 
 
 @app.get("/movies/trending")
 def get_trending(db: Session = Depends(get_db)):
-    # Sort by popularity to get 'Trending'
-    return get_movies_by_category("popular", db)
+    return db.query(Movie).order_by(Movie.popularity.desc()).limit(20).all()
 
 
 @app.get("/movies/top-rated")
 def get_top_rated(db: Session = Depends(get_db)):
-    # Sort by tmdb_id
     return (
         db.query(Movie)
         .join(MovieCategory)
@@ -104,108 +152,110 @@ def get_top_rated(db: Session = Depends(get_db)):
     )
 
 
-@app.get("/movies/upcoming")
-def get_upcoming(db: Session = Depends(get_db)):
-    return get_movies_by_category("upcoming", db)
-
-
-@app.get("/movies/now-playing")
-def get_now_playing(db: Session = Depends(get_db)):
-    return get_movies_by_category("now_playing", db)
-
-
-@app.get("/movies/genre/{genre_id}")
-def get_by_genre(genre_id: int, db: Session = Depends(get_db)):
-    genre = db.query(Genre).filter(Genre.id == genre_id).first()
-
-    if not genre:
-        raise HTTPException(status_code=404, detail="Genre not found")
-
-    movies = db.query(Movie).filter(Movie.genres.contains([genre_id])).limit(20).all()
-
-    return {"genre_name": genre.name if genre else "Unknown", "movies": movies}
-
-
-# Search for movies by title
-@app.get("/movies/search")
-def search_movies(query: str, db: Session = Depends(get_db)):
-    return db.query(Movie).filter(Movie.title.ilike(f"%{query}%")).limit(10).all()
-
-
-# Get related movies (Basic logic: same genre)
-@app.get("/movies/{movie_id}/recommendations")
-def get_recommendations(movie_id: int, db: Session = Depends(get_db)):
-    # 1. Fetch the movie first
-    movie = db.query(Movie).filter(Movie.id == movie_id).first()
-
-    if not movie:
-        raise HTTPException(status_code=404, detail="Movie not found")
-
-    if movie.genres is None or not isinstance(movie.genres, list):
-        return []
+# Endpoint for New Releases (Sorted by date)
+@app.get("/movies/new-releases")
+def get_new_releases(db: Session = Depends(get_db)):
+    # Define what "New" means (e.g., released in the last 90 days)
+    three_months_ago = datetime.now() - timedelta(days=90)
 
     return (
         db.query(Movie)
-        .filter(Movie.id != movie_id)  # Don't recommend the same movie
-        .filter(Movie.genres.overlap(movie.genres))  # Postgres && operator
-        .order_by(Movie.popularity.desc())  # Recommend the best ones first
-        .limit(10)
+        .filter(Movie.release_date >= three_months_ago)  # Only recent
+        .order_by(Movie.popularity.desc())  # But most popular first
+        .limit(20)
         .all()
     )
 
 
-@app.get("/movies/{movie_id}")
-def get_movie_by_id(movie_id: int, db: Session = Depends(get_db)):
-    movie = db.query(Movie).filter(Movie.id == movie_id).first()
+# Endpoint to discover 3 random genres and their top movies
+@app.get("/movies/genre-discovery")
+def get_genre_discovery(db: Session = Depends(get_db)):
+    random_genres = db.query(Genre).order_by(func.random()).limit(3).all()
 
-    if not movie:
-        raise HTTPException(status_code=404, detail="Movie not found")
+    discovery_results = []
+    for genre in random_genres:
+        movies = (
+            db.query(Movie)
+            .filter(Movie.genres.contains([genre.id]))
+            .order_by(Movie.popularity.desc())
+            .limit(15)
+            .all()
+        )
 
-    return movie
+        if movies:
+            discovery_results.append({"genre_name": genre.name, "movies": movies})
+
+    return discovery_results
 
 
-@app.get("/movies/tmdb/{tmdb_id}")
-def get_movie_by_tmdb_id(tmdb_id: int, db: Session = Depends(get_db)):
-    """Get detailed information about a specific movie by TMDB ID"""
-    movie = db.query(Movie).filter(Movie.tmdb_id == tmdb_id).first()
-
-    if not movie:
-        raise HTTPException(status_code=404, detail="Movie not found")
-
-    return movie
+@app.post("/movies/rebuild-embeddings")
+def rebuild_embeddings(db: Session = Depends(get_db)):
+    if os.path.exists("movie_embeddings.pkl"):
+        os.remove("movie_embeddings.pkl")
+    initialize_recommendation_system(db)
+    return {"status": "success"}
 
 
 @app.post("/auth/register", response_model=schemas.Token)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    # Check if user already exists
     db_user = db.query(User).filter(User.email == user.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-
-    # Hash password and save new user
     new_user = User(email=user.email, hashed_password=auth.hash_password(user.password))
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-
-    # Return token immediately so they are logged in
-    access_token = auth.create_access_token(data={"sub": new_user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": auth.create_access_token(data={"sub": new_user.email}),
+        "token_type": "bearer",
+    }
 
 
 @app.post("/auth/login", response_model=schemas.Token)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
-    """Standard login endpoint for OAuth2 flow."""
     user = db.query(User).filter(User.email == form_data.username).first()
-
     if not user or not auth.verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return {
+        "access_token": auth.create_access_token(data={"sub": user.email}),
+        "token_type": "bearer",
+    }
 
-    access_token = auth.create_access_token(data={"sub": user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/movies/{movie_id}")
+def get_movie_by_id(movie_id: int, db: Session = Depends(get_db)):
+    movie = db.query(Movie).filter(Movie.id == movie_id).first()
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    return movie
+
+
+@app.get("/movies/similar/{movie_id}")
+def get_similar_movies(
+    movie_id: int, limit: int = Query(10, ge=1, le=50), db: Session = Depends(get_db)
+):
+    global movie_embeddings, movie_id_to_index, index_to_movie_id
+
+    if movie_embeddings is None:
+        initialize_recommendation_system(db)
+
+    if movie_id not in movie_id_to_index:
+        raise HTTPException(status_code=404, detail="Movie not found in index")
+
+    movie_idx = movie_id_to_index[movie_id]
+
+    # FIX: Reshape 1D vector to 2D (1, 384) for Scikit-Learn compatibility
+    movie_emb = movie_embeddings[movie_idx].reshape(1, -1)
+    similarities = cosine_similarity(movie_emb, movie_embeddings)[0]
+
+    # Get top N similar (skip index 0 as it is the movie itself)
+    top_indices = np.argsort(similarities)[::-1][1 : limit + 1]
+    similar_movie_ids = [index_to_movie_id[idx] for idx in top_indices]
+
+    movies_list = db.query(Movie).filter(Movie.id.in_(similar_movie_ids)).all()
+    movie_dict = {m.id: m for m in movies_list}
+    sorted_movies = [movie_dict[mid] for mid in similar_movie_ids if mid in movie_dict]
+
+    return {"similar_movies": sorted_movies}

@@ -1,6 +1,6 @@
 import { Movie } from "@/types/movie";
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "http://127.0.0.1:8000";
 
 export async function getMovies(category: string): Promise<Movie[]> {
   try {
@@ -14,6 +14,14 @@ export async function getMovies(category: string): Promise<Movie[]> {
     console.error("Fetch error:", error);
     return [];
   }
+}
+
+export async function getGenreDiscovery() {
+  const res = await fetch(`${API_BASE_URL}/movies/genre-discovery`, {
+    cache: "no-store",
+  });
+  if (!res.ok) return [];
+  return res.json();
 }
 
 export const getPosterUrl = (path: string | null) =>
