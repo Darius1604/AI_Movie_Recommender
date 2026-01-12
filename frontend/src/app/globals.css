@@ -28,10 +28,35 @@ body::-webkit-scrollbar {
 }
 
 .movie-swiper {
+  /* This ensures the shadows/borders outside the slide width are visible */
   overflow: visible !important;
-  padding-top: 20px !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+.movie-swiper .swiper-wrapper {
+  padding-top: 40px !important;
   padding-bottom: 20px !important;
-  position: relastive;
+  overflow: visible !important;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 20px !important;
+}
+
+.movie-swiper .swiper-slide {
+  height: auto !important;
+  display: flex !important;
+  flex-direction: column;
+  overflow: visible !important;
+  /* Formula: (100% - (total_gaps)) / slides_visible */
+  width: calc((100% - (20px * 4)) / 5.5) !important;
+}
+
+.movie-swiper .swiper-slide > div {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .swiper-button-next,
@@ -60,8 +85,8 @@ body::-webkit-scrollbar {
 }
 
 .modal-slider .swiper-button-next {
-  right: 35px !important; /* Keep inside modal padding */
-  background: rgba(0, 0, 0, 0.7) !important; /* Darker for contrast */
+  right: 35px !important;
+  background: rgba(0, 0, 0, 0.7) !important;
 }
 .modal-slider .swiper-button-prev {
   left: 15px !important;
@@ -117,6 +142,7 @@ body::-webkit-scrollbar {
     .slider-mask-container {
       --mask-start: transparent;
       --mask-end: transparent;
+      padding-top: 10px;
 
       /* Default: Both sides faded */
       mask-image: linear-gradient(
@@ -171,4 +197,28 @@ body::-webkit-scrollbar {
     right: 10px !important;
     left: 10px !important;
   }
+}
+
+@media (min-width: 640px) {
+  .movie-swiper .swiper-slide {
+    width: calc((100% - 20px) / 1.2) !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .movie-swiper .swiper-slide {
+    width: 28.5%;
+  } /* 100 / 3.5 */
+}
+
+@media (min-width: 1024px) {
+  .movie-swiper .swiper-slide {
+    width: calc((100% - (20px * 4)) / 4.5) !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  .movie-swiper .swiper-slide {
+    width: calc((100% - (20px * 5)) / 5.5) !important;
+  } /* 100 / 5.5 */
 }

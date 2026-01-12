@@ -4,12 +4,10 @@ import { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, FreeMode } from "swiper/modules";
 import MovieCard from "./MovieCard";
+import { MovieCardSkeleton } from "./MovieCardSkeleton";
 import { Movie } from "@/types/movie";
 import { Flame, Star, Play, Calendar, LucideIcon } from "lucide-react";
-
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/free-mode";
+import "swiper/css/bundle";
 
 interface MovieSliderProps {
   movies: Movie[];
@@ -33,8 +31,10 @@ export default function MovieSlider({
 }: MovieSliderProps) {
   const [isAtStart, setIsAtStart] = useState(true);
   const [isAtEnd, setIsAtEnd] = useState(false);
-
   const Icon = iconMap[iconName] || Star;
+
+  // Determine if we should show skeletons
+  const isLoading = !movies || movies.length === 0;
 
   return (
     <section className="py-8">
@@ -52,31 +52,31 @@ export default function MovieSlider({
       >
         <Swiper
           modules={[Navigation, FreeMode]}
-          spaceBetween={20}
-          slidesPerView={1.2}
+          slidesPerView={"auto"}
           navigation
           freeMode={true}
-          breakpoints={{
-            640: { slidesPerView: 2.5 },
-            768: { slidesPerView: 3.5 },
-            1024: { slidesPerView: 4.5 },
-            1280: { slidesPerView: 5.5 },
-          }}
-          // Progress is 0 at start and 1 at end.
-          // This is much smoother for masks.
           onProgress={(swiper, progress) => {
             setIsAtStart(progress <= 0);
             setIsAtEnd(progress >= 1);
           }}
+          // CRITICAL: Set a min-height to prevent the 0px collapse
           className={`movie-swiper ${
             isModal ? "modal-slider" : "page-slider"
-          } !overflow-visible`}
+          } !overflow-hidden z-10 min-h-[450px] md:min-h-[550px]`}
         >
-          {movies.map((movie) => (
-            <SwiperSlide key={movie.id} className="pb-4">
-              <MovieCard movie={movie} />
-            </SwiperSlide>
-          ))}
+          {isLoading
+            ? // Render 6 skeleton cards while loading
+              Array.from({ length: 6 }).map((_, i) => (
+                <SwiperSlide key={`skeleton-${i}`} className="pb-4 !h-auto">
+                  <MovieCardSkeleton />
+                </SwiperSlide>
+              ))
+            : movies.map((movie, index) => (
+                <SwiperSlide key={movie.id} className="pb-4 !h-auto">
+                  {/* Pass priority to the first few visible movies */}
+                  <MovieCard movie={movie} priority={index < 5} />
+                </SwiperSlide>
+              ))}
         </Swiper>
       </div>
     </section>

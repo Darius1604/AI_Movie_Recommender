@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 from fastapi import FastAPI, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from database import SessionLocal
-from models import Movie, MovieCategory, Genre, User
+from database import SessionLocal, get_db
+from models import Movie, MovieCategory, Genre, User, Favorite
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 import schemas
@@ -12,8 +12,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 import pickle
 import os
 from sentence_transformers import SentenceTransformer
-import random
 from sqlalchemy.sql.expression import func
+import secrets
 
 app = FastAPI()
 
@@ -33,13 +33,8 @@ movie_embeddings = None
 movie_id_to_index = {}
 index_to_movie_id = {}
 
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# In-memory storage for reset tokens (In production, use Redis or database)
+reset_tokens = {}
 
 
 def initialize_recommendation_system(db: Session):
@@ -222,6 +217,98 @@ def login(
         "access_token": auth.create_access_token(data={"sub": user.email}),
         "token_type": "bearer",
     }
+
+
+# Password Reset Endpoints
+@app.post("/auth/forgot-password")
+def forgot_password(email: str, db: Session = Depends(get_db)):
+    """
+    Generate a password reset token for the user.
+    In production, this would send an email with the reset link.
+    """
+    user = db.query(User).filter(User.email == email).first()
+
+    # Don't reveal if email exists (security best practice)
+    if not user:
+        return {
+            "message": "If an account exists with this email, you will receive password reset instructions."
+        }
+
+    # Generate a secure random token
+    reset_token = secrets.token_urlsafe(32)
+
+    # Store token with expiration (15 minutes)
+    reset_tokens[reset_token] = {
+        "email": email,
+        "expires_at": datetime.now() + timedelta(minutes=15),
+    }
+    print(f"Reset token for {email}: {reset_token}")
+
+    return {
+        "message": "If an account exists with this email, you will receive password reset instructions.",
+        "reset_token": reset_token,
+    }
+
+
+@app.post("/auth/reset-password")
+def reset_password(token: str, new_password: str, db: Session = Depends(get_db)):
+    """
+    Reset password using the provided token.
+    """
+    # Check if token exists and is valid
+    if token not in reset_tokens:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+
+    token_data = reset_tokens[token]
+
+    # Check if token has expired
+    if datetime.now() > token_data["expires_at"]:
+        del reset_tokens[token]
+        raise HTTPException(status_code=400, detail="Reset token has expired")
+
+    # Find user
+    user = db.query(User).filter(User.email == token_data["email"]).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Update password
+    user.hashed_password = auth.hash_password(new_password)
+    db.commit()
+
+    # Delete used token
+    del reset_tokens[token]
+
+    return {"message": "Password has been reset successfully"}
+
+
+@app.post("/movies/favorite/{movie_id}")
+def toggle_favorite(
+    movie_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth.get_current_user),
+):
+    # 1. Check if movie exists
+    movie = db.query(Movie).filter(Movie.id == movie_id).first()
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    # 2. Check if already favorited
+    existing_fav = (
+        db.query(Favorite)
+        .filter(Favorite.user_id == current_user.id, Favorite.movie_id == movie_id)
+        .first()
+    )
+
+    if existing_fav:
+        db.delete(existing_fav)
+        db.commit()
+        return {"status": "removed", "message": "Removed from favorites"}
+
+    # 3. Add to favorites
+    new_fav = Favorite(user_id=current_user.id, movie_id=movie_id)
+    db.add(new_fav)
+    db.commit()
+    return {"status": "added", "message": "Added to favorites"}
 
 
 @app.get("/movies/{movie_id}")

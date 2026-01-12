@@ -1,4 +1,3 @@
-// app/page.tsx
 import { getMovies, getGenreDiscovery } from "@/lib/api";
 import Navbar from "@/Components/Navbar";
 import MovieSlider from "@/Components/MovieSlider";

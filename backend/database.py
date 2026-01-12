@@ -18,6 +18,15 @@ DB_PASS = os.getenv("DB_PASS")
 
 encoded_password = urllib.parse.quote_plus(DB_PASS)
 
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 DATABASE_URL = f"postgresql://{DB_USER}:{encoded_password}@{DB_HOST}/{DB_NAME}"
 engine = create_engine(DATABASE_URL)
 
