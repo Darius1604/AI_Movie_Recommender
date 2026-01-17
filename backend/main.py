@@ -14,6 +14,7 @@ import os
 from sentence_transformers import SentenceTransformer
 from sqlalchemy.sql.expression import func
 import secrets
+import random
 
 app = FastAPI()
 
@@ -150,7 +151,6 @@ def get_top_rated(db: Session = Depends(get_db)):
 # Endpoint for New Releases (Sorted by date)
 @app.get("/movies/new-releases")
 def get_new_releases(db: Session = Depends(get_db)):
-    # Define what "New" means (e.g., released in the last 90 days)
     three_months_ago = datetime.now() - timedelta(days=90)
 
     return (
@@ -189,6 +189,100 @@ def rebuild_embeddings(db: Session = Depends(get_db)):
         os.remove("movie_embeddings.pkl")
     initialize_recommendation_system(db)
     return {"status": "success"}
+
+
+@app.get("/movies/favorites")
+def get_user_favorites(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth.get_current_user),
+):
+    # Get all favorite records for this user
+    favorite_records = (
+        db.query(Favorite).filter(Favorite.user_id == current_user.id).all()
+    )
+
+    if not favorite_records:
+        return {"favorites": []}
+
+    # Extract movie IDs
+    movie_ids = [fav.movie_id for fav in favorite_records]
+
+    # Fetch complete movie details
+    movies = db.query(Movie).filter(Movie.id.in_(movie_ids)).all()
+
+    # Create a dictionary for quick lookup
+    movie_dict = {movie.id: movie for movie in movies}
+
+    # Return movies in the order they were favorited (most recent first)
+    ordered_movies = []
+    for fav in reversed(favorite_records):
+        if fav.movie_id in movie_dict:
+            ordered_movies.append(movie_dict[fav.movie_id])
+
+    return {"favorites": ordered_movies}
+
+
+@app.get("/movies/personalized-recommendations")
+def get_personalized_recommendations(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(auth.get_current_user),
+):
+    """
+    Get personalized movie recommendations based on user's favorites.
+    Returns recommendations for 2 randomly selected favorited movies.
+    """
+    global movie_embeddings, movie_id_to_index, index_to_movie_id
+
+    if movie_embeddings is None:
+        initialize_recommendation_system(db)
+
+    # Get user's favorite movies
+    favorite_records = (
+        db.query(Favorite)
+        .filter(Favorite.user_id == current_user.id)
+        .order_by(Favorite.id.desc())
+        .limit(5)  # Get up to 5 most recent favorites
+        .all()
+    )
+
+    if not favorite_records:
+        return {"recommendations": []}
+
+    # Randomly select up to 2 favorites
+
+    selected_favorites = random.sample(favorite_records, min(2, len(favorite_records)))
+
+    recommendations = []
+
+    for fav in selected_favorites:
+        movie_id = fav.movie_id
+
+        # Get the base movie
+        base_movie = db.query(Movie).filter(Movie.id == movie_id).first()
+        if not base_movie or movie_id not in movie_id_to_index:
+            continue
+
+        # Get similar movies
+        movie_idx = movie_id_to_index[movie_id]
+        movie_emb = movie_embeddings[movie_idx].reshape(1, -1)
+        similarities = cosine_similarity(movie_emb, movie_embeddings)[0]
+
+        # Get top 20 similar movies (excluding the movie itself)
+        top_indices = np.argsort(similarities)[::-1][1:21]
+        similar_movie_ids = [index_to_movie_id[idx] for idx in top_indices]
+
+        # Fetch movie details
+        similar_movies = db.query(Movie).filter(Movie.id.in_(similar_movie_ids)).all()
+        movie_dict = {m.id: m for m in similar_movies}
+        sorted_movies = [
+            movie_dict[mid] for mid in similar_movie_ids if mid in movie_dict
+        ]
+
+        recommendations.append(
+            {"base_movie": base_movie, "similar_movies": sorted_movies}
+        )
+
+    return {"recommendations": recommendations}
 
 
 @app.post("/auth/register", response_model=schemas.Token)
@@ -333,7 +427,7 @@ def get_similar_movies(
 
     movie_idx = movie_id_to_index[movie_id]
 
-    # FIX: Reshape 1D vector to 2D (1, 384) for Scikit-Learn compatibility
+    # Reshape 1D vector to 2D (1, 384) for Scikit-Learn compatibility
     movie_emb = movie_embeddings[movie_idx].reshape(1, -1)
     similarities = cosine_similarity(movie_emb, movie_embeddings)[0]
 
