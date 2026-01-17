@@ -6,7 +6,7 @@ import { Navigation, FreeMode } from "swiper/modules";
 import MovieCard from "./MovieCard";
 import { MovieCardSkeleton } from "./MovieCardSkeleton";
 import { Movie } from "@/types/movie";
-import { Flame, Star, Play, Calendar, LucideIcon } from "lucide-react";
+import { Flame, Star, Play, Calendar, Film, LucideIcon } from "lucide-react";
 import "swiper/css/bundle";
 
 interface MovieSliderProps {
@@ -21,6 +21,7 @@ const iconMap: Record<string, LucideIcon> = {
   star: Star,
   play: Play,
   calendar: Calendar,
+  film: Film,
 };
 
 export default function MovieSlider({
@@ -37,7 +38,7 @@ export default function MovieSlider({
   const isLoading = !movies || movies.length === 0;
 
   return (
-    <section className="py-8">
+    <section className="py-6">
       <div className="flex items-center gap-3 mb-6 px-4 md:px-0">
         <Icon className="text-brand-primary" size={24} />
         <h2 className="text-2xl font-bold tracking-tight text-white">
@@ -59,20 +60,19 @@ export default function MovieSlider({
             setIsAtStart(progress <= 0);
             setIsAtEnd(progress >= 1);
           }}
-          // CRITICAL: Set a min-height to prevent the 0px collapse
           className={`movie-swiper ${
             isModal ? "modal-slider" : "page-slider"
-          } !overflow-hidden z-10 min-h-[450px] md:min-h-[550px]`}
+          } !overflow-hidden z-10`}
         >
           {isLoading
             ? // Render 6 skeleton cards while loading
               Array.from({ length: 6 }).map((_, i) => (
-                <SwiperSlide key={`skeleton-${i}`} className="pb-4 !h-auto">
+                <SwiperSlide key={`skeleton-${i}`} className="!h-auto">
                   <MovieCardSkeleton />
                 </SwiperSlide>
               ))
             : movies.map((movie, index) => (
-                <SwiperSlide key={movie.id} className="pb-4 !h-auto">
+                <SwiperSlide key={movie.id} className="!h-auto">
                   {/* Pass priority to the first few visible movies */}
                   <MovieCard movie={movie} priority={index < 5} />
                 </SwiperSlide>

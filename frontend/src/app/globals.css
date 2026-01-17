@@ -27,6 +27,10 @@ body::-webkit-scrollbar {
   height: 0;
 }
 
+html {
+  font-size: 110%;
+}
+
 .movie-swiper {
   /* This ensures the shadows/borders outside the slide width are visible */
   overflow: visible !important;
@@ -35,8 +39,8 @@ body::-webkit-scrollbar {
 }
 
 .movie-swiper .swiper-wrapper {
-  padding-top: 40px !important;
-  padding-bottom: 20px !important;
+  padding-top: 20px !important;
+  padding-bottom: 5px !important;
   overflow: visible !important;
   display: flex !important;
   flex-direction: row !important;
@@ -71,7 +75,7 @@ body::-webkit-scrollbar {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  top: 42% !important;
+  top: 46% !important;
   margin: 0 !important;
   transition: all 0.3s ease !important;
   z-index: 100;
@@ -87,9 +91,11 @@ body::-webkit-scrollbar {
 .modal-slider .swiper-button-next {
   right: 35px !important;
   background: rgba(0, 0, 0, 0.7) !important;
+  top: 30% !important;
 }
 .modal-slider .swiper-button-prev {
   left: 15px !important;
+  top: 30% !important;
   background: rgba(0, 0, 0, 0.7) !important;
 }
 

@@ -164,7 +164,6 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-md">
         <div className="bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-white/5 p-8 shadow-2xl">
-          {/* Back Button */}
           {(view === "forgot" || view === "reset" || view === "register") && (
             <button
               onClick={() => {
@@ -283,7 +282,7 @@ export default function LoginPage() {
                   />
                   <button
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors cursor-pointer"
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
@@ -373,13 +372,12 @@ export default function LoginPage() {
               </>
             )}
 
-            {/* Primary Action Button */}
             <div className="space-y-4 pt-2">
               {view === "login" && (
                 <div className="flex justify-end -mt-2">
                   <button
                     onClick={() => setView("forgot")}
-                    className="text-sm text-sky-400 hover:text-sky-300 font-medium transition-colors"
+                    className="text-sm text-sky-400 hover:text-sky-300 font-medium transition-colors cursor-pointer"
                   >
                     Forgot password?
                   </button>
@@ -389,13 +387,13 @@ export default function LoginPage() {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full py-4 bg-gradient-to-r from-sky-400 to-indigo-500 text-black font-bold rounded-xl shadow-lg shadow-sky-500/10 hover:shadow-sky-500/30 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:pointer-events-none"
+                className="w-full py-4 bg-gradient-to-r from-sky-400 to-indigo-500 text-black font-bold rounded-xl shadow-lg shadow-sky-500/10 hover:shadow-sky-500/30 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
               >
                 {loading
                   ? "Processing..."
                   : view === "login"
-                  ? "Sign In"
-                  : "Submit"}
+                    ? "Sign In"
+                    : "Submit"}
               </button>
             </div>
 
@@ -407,7 +405,7 @@ export default function LoginPage() {
                     Don't have an account?{" "}
                     <button
                       onClick={() => setView("register")}
-                      className="text-sky-400 hover:text-sky-300 font-semibold transition-colors"
+                      className="text-sky-400 hover:text-sky-300 font-semibold transition-colors cursor-pointer"
                     >
                       Sign up
                     </button>
@@ -424,7 +422,7 @@ export default function LoginPage() {
 
                 <button
                   onClick={handleContinueAsGuest}
-                  className="w-full py-3.5 bg-white/5 border border-white/10 text-zinc-200 font-semibold rounded-xl hover:bg-white/10 hover:text-white transition-all active:scale-[0.99]"
+                  className="w-full py-3.5 bg-white/5 border border-white/10 text-zinc-200 font-semibold rounded-xl hover:bg-white/10 hover:text-white transition-all active:scale-[0.99] cursor-pointer"
                 >
                   Continue as Guest
                 </button>

@@ -1,9 +1,7 @@
 "use client";
-
+import SimpleNavbar from "@/Components/SimpleNavbar";
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
 import {
-  ArrowLeft,
   Sparkles,
   Heart,
   Zap,
@@ -16,7 +14,6 @@ import {
   PartyPopper,
   Moon,
   Search,
-  Cpu,
   X,
   Ghost,
 } from "lucide-react";
@@ -93,7 +90,7 @@ const moods = [
   {
     id: "mysterious",
     label: "Mysterious",
-    icon: Ghost, // Add Ghost to your lucide-react imports
+    icon: Ghost,
     color: "from-slate-600 to-indigo-900",
   },
 ];
@@ -173,79 +170,60 @@ export default function DiscoverPage() {
 
   return (
     <main className="min-h-screen bg-brand-bg text-white">
-      {/* Header */}
-      <div className="relative bg-gradient-to-b from-zinc-900 to-brand-bg py-12 border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6">
-          {/* FIXED: Removed text-center from this wrapper so Link stays left */}
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-zinc-400 hover:text-white mb-8 group"
-          >
-            <ArrowLeft
-              size={20}
-              className="group-hover:-translate-x-1 transition-transform"
+      <SimpleNavbar />
+
+      {/* Search Section */}
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-8">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-black mb-3 bg-gradient-to-r from-white via-brand-primary to-brand-secondary bg-clip-text text-transparent pt-5 pb-4">
+            How Are You Feeling?
+          </h1>
+
+          <p className="text-zinc-400 mb-6">
+            Describe your vibe or search for exactly what you want
+          </p>
+
+          <form onSubmit={handleFind} className="relative">
+            <input
+              type="text"
+              placeholder="e.g. A high-stakes heist where everything goes wrong..."
+              value={customQuery}
+              onChange={(e) => {
+                setCustomQuery(e.target.value);
+                if (e.target.value) setSelectedMoods([]);
+              }}
+              className="w-full bg-zinc-900/50 border border-white/10 rounded-2xl py-4 px-12 focus:outline-none focus:border-brand-primary transition-all text-white placeholder:text-zinc-500"
             />
-            <span>Back to Home</span>
-          </Link>
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"
+              size={20}
+            />
 
-          {/* FIXED: Added text-center specifically to this inner content wrapper */}
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg mx-auto mb-6">
-              <Cpu size={28} className="text-black" />
-            </div>
-
-            <h1 className="text-5xl md:text-6xl font-black leading-tight py-2 mb-4 bg-gradient-to-r from-white via-brand-primary to-brand-secondary bg-clip-text text-transparent">
-              How Are You Feeling?
-            </h1>
-
-            <p className="text-zinc-400 text-lg mb-8">
-              Describe your vibe or search for exactly what you want
-            </p>
-
-            <form
-              onSubmit={handleFind}
-              className="relative max-w-xl mx-auto mb-4"
-            >
-              <input
-                type="text"
-                placeholder="e.g. A high-stakes heist where everything goes wrong..."
-                value={customQuery}
-                onChange={(e) => {
-                  setCustomQuery(e.target.value);
-                  if (e.target.value) setSelectedMoods([]);
-                }}
-                className="w-full bg-zinc-900/50 border border-white/10 rounded-2xl py-4 px-12 focus:outline-none focus:border-brand-primary transition-all text-white placeholder:text-zinc-500"
-              />
-              <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"
-                size={20}
-              />
-
-              {(customQuery || selectedMoods.length > 0) && (
-                <button
-                  type="button"
-                  onClick={clearAll}
-                  className="absolute right-24 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              )}
-
+            {(customQuery || selectedMoods.length > 0) && (
               <button
-                type="submit"
-                disabled={!customQuery && selectedMoods.length === 0}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-primary disabled:opacity-50 text-black px-6 py-2 rounded-xl font-bold hover:scale-105 transition-transform"
+                type="button"
+                onClick={clearAll}
+                className="absolute right-24 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
               >
-                Find
+                <X size={20} />
               </button>
-            </form>
-          </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={!customQuery && selectedMoods.length === 0}
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-brand-primary disabled:opacity-50 text-black px-6 py-2 rounded-xl font-bold hover:scale-105 transition-transform disabled:hover:scale-100"
+            >
+              Find
+            </button>
+          </form>
         </div>
       </div>
 
-      {/* Mood Selection Grid ... remains the same ... */}
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Mood Selection Grid */}
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-8">
+        <h2 className="text-xl font-bold mb-6">Or pick your mood</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
           {moods.map((mood) => {
             const Icon = mood.icon;
             const isSelected = selectedMoods.includes(mood.id);
@@ -253,22 +231,22 @@ export default function DiscoverPage() {
               <button
                 key={mood.id}
                 onClick={() => handleMoodSelect(mood.id)}
-                className={`group relative p-6 rounded-2xl border-2 transition-all duration-500 ${
+                className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 ${
                   isSelected
-                    ? "border-purple-500/60 bg-zinc-900/80 scale-105 shadow-[0_0_40px_rgba(168,85,247,0.4)] ring-1 ring-purple-500/40"
-                    : "border-white/5 bg-zinc-900/50 hover:border-brand-primary/30"
+                    ? "border-brand-primary bg-brand-primary/10 scale-105 shadow-lg shadow-brand-primary/20"
+                    : "border-white/5 bg-zinc-900/50 hover:border-brand-primary/30 hover:bg-zinc-900/80"
                 }`}
               >
                 <div className="flex flex-col items-center gap-3">
                   <div
-                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${mood.color} flex items-center justify-center transition-transform duration-500 group-hover:scale-110 shadow-lg`}
+                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${mood.color} flex items-center justify-center transition-transform duration-300 group-hover:scale-110 shadow-lg`}
                   >
                     <Icon size={24} className="text-white" />
                   </div>
                   <span
-                    className={`font-bold transition-colors duration-300 ${
+                    className={`font-semibold text-sm transition-colors duration-300 ${
                       isSelected
-                        ? "text-purple-400"
+                        ? "text-brand-primary"
                         : "text-white group-hover:text-brand-primary"
                     }`}
                   >
@@ -284,12 +262,12 @@ export default function DiscoverPage() {
       {/* Results Section */}
       <div
         ref={resultsRef}
-        className="max-w-7xl mx-auto px-6 pb-20 scroll-mt-20"
+        className="max-w-[1400px] mx-auto px-6 md:px-12 pb-20 scroll-mt-20"
       >
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <div className="w-12 h-12 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin" />
-            <p className="text-zinc-400">Consulting AI Embeddings...</p>
+            <p className="text-zinc-400">Finding perfect matches...</p>
           </div>
         ) : movies.length > 0 ? (
           <>
@@ -300,12 +278,10 @@ export default function DiscoverPage() {
             <MovieGrid movies={movies} />
           </>
         ) : (
-          !loading && (
-            <div className="text-center py-20 text-zinc-600">
-              <Sparkles size={40} className="mx-auto mb-4 opacity-20" />
-              <p>Combine your moods and press Find to discover movies.</p>
-            </div>
-          )
+          <div className="text-center py-20 text-zinc-600">
+            <Sparkles size={40} className="mx-auto mb-4 opacity-20" />
+            <p>Select a mood or describe what you want to watch</p>
+          </div>
         )}
       </div>
     </main>
