@@ -159,7 +159,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background Effect */}
       <div className="absolute inset-0 opacity-20">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:44px_44px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-size-[44px_44px]" />
       </div>
 
       <div className="relative z-10 w-full max-w-md">
@@ -183,14 +183,14 @@ export default function LoginPage() {
 
           {/* Logo */}
           <div className="flex justify-center mb-6">
-            <div className="relative bg-gradient-to-br from-sky-400 to-indigo-500 p-3 rounded-2xl shadow-lg shadow-sky-500/20">
+            <div className="relative bg-linear-to-br from-sky-400 to-indigo-500 p-3 rounded-2xl shadow-lg shadow-sky-500/20">
               <Clapperboard size={32} className="text-black" />
             </div>
           </div>
 
           {/* Title */}
           <h1 className="text-4xl font-bold text-center mb-2 tracking-tight">
-            <span className="bg-gradient-to-r from-white via-sky-300 to-indigo-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-white via-sky-300 to-indigo-400 bg-clip-text text-transparent">
               {view === "login" && "Welcome Back"}
               {view === "register" && "Create Account"}
               {view === "forgot" && "Reset Password"}
@@ -216,7 +216,7 @@ export default function LoginPage() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3"
               >
-                <AlertCircle size={20} className="text-red-400 flex-shrink-0" />
+                <AlertCircle size={20} className="text-red-400 shrink-0" />
                 <p className="text-red-400 text-sm font-medium">{error}</p>
               </motion.div>
             )}
@@ -228,10 +228,7 @@ export default function LoginPage() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3"
               >
-                <CheckCircle
-                  size={20}
-                  className="text-emerald-400 flex-shrink-0"
-                />
+                <CheckCircle size={20} className="text-emerald-400 shrink-0" />
                 <p className="text-emerald-400 text-sm font-medium">
                   {success}
                 </p>
@@ -387,7 +384,7 @@ export default function LoginPage() {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full py-4 bg-gradient-to-r from-sky-400 to-indigo-500 text-black font-bold rounded-xl shadow-lg shadow-sky-500/10 hover:shadow-sky-500/30 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                className="w-full py-4 bg-linear-to-r from-sky-400 to-indigo-500 text-black font-bold rounded-xl shadow-lg shadow-sky-500/10 hover:shadow-sky-500/30 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
               >
                 {loading
                   ? "Processing..."

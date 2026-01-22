@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 import bcrypt
 
-# Import your shared DB and Models
+# Import shared DB and Models
 from database import get_db
 from models import User
 
@@ -28,7 +28,7 @@ def hash_password(password: str) -> str:
     """
     # 1. Convert plain text to bytes
     pwd_bytes = password.encode("utf-8")
-    # 2. Generate a salt and hash the password
+    # 2. Generate a salt and hash the password -- A salt is a random string of data
     salt = bcrypt.gensalt()
     hashed_password_bytes = bcrypt.hashpw(pwd_bytes, salt)
     # 3. Decode the bytes to a string so SQLAlchemy can store it in a String() column

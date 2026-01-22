@@ -127,7 +127,7 @@ export default function HomePage() {
     <main className="min-h-screen bg-brand-bg text-white pb-20">
       <Navbar />
 
-      <div className="max-w-[1400px] mx-auto px-6 md:px-12 mt-8 relative z-20 space-y-4">
+      <div className="max-w-350 mx-auto px-6 md:px-12 mt-8 relative z-20 space-y-4">
         {/* 1. Trending Now */}
         <MovieSlider movies={trending} title="Trending Now" iconName="flame" />
 

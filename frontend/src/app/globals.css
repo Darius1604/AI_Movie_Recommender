@@ -45,7 +45,6 @@ html {
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
-  gap: 20px !important;
 }
 
 .movie-swiper .swiper-slide {

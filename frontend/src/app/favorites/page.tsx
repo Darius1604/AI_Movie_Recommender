@@ -65,7 +65,7 @@ export default function FavoritesPage() {
     <main className="min-h-screen bg-brand-bg text-white pb-20">
       <SimpleNavbar />
 
-      <div className="max-w-[1400px] mx-auto px-6 md:px-12 mt-8">
+      <div className="max-w-350 mx-auto px-6 md:px-12 mt-8">
         {/* Page Title */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">My Favorites</h1>
@@ -79,7 +79,7 @@ export default function FavoritesPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {[...Array(10)].map((_, i) => (
               <div key={i} className="animate-pulse">
-                <div className="aspect-[2/3] bg-brand-surface rounded-3xl" />
+                <div className="aspect-2/3 bg-brand-surface rounded-3xl" />
                 <div className="mt-4 h-4 bg-brand-surface rounded" />
               </div>
             ))}
@@ -95,7 +95,7 @@ export default function FavoritesPage() {
             </p>
             <button
               onClick={() => router.push("/home")}
-              className="px-6 py-3 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full text-black font-bold hover:scale-105 transition-transform"
+              className="px-6 py-3 bg-linear-to-r from-brand-primary to-brand-secondary rounded-full text-black font-bold hover:scale-105 transition-transform"
             >
               Explore Movies
             </button>

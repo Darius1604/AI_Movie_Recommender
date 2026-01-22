@@ -54,6 +54,7 @@ export default function MovieSlider({
         <Swiper
           modules={[Navigation, FreeMode]}
           slidesPerView={"auto"}
+          spaceBetween={20}
           navigation
           freeMode={true}
           onProgress={(swiper, progress) => {

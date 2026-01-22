@@ -44,35 +44,34 @@ def ingest_movies():
                     for movie_data in movies_list:
                         tmdb_id = movie_data["id"]
                         movie = db.query(Movie).filter(Movie.tmdb_id == tmdb_id).first()
+                        current_movie_runtime = None
 
                         # Fetch details if new or missing runtime
                         if not movie or movie.runtime is None:
                             detail_url = f"https://api.themoviedb.org/3/movie/{tmdb_id}"
                             d_resp = http.get(detail_url, params={"api_key": API_KEY})
-
-                            runtime = None
                             if d_resp.status_code == 200:
-                                runtime = d_resp.json().get("runtime")
+                                current_movie_runtime = d_resp.json().get("runtime")
 
-                        if not movie:
-                            movie = Movie(
-                                tmdb_id=tmdb_id,
-                                title=movie_data["title"],
-                                overview=movie_data["overview"],
-                                genres=movie_data["genre_ids"],
-                                poster_path=movie_data.get("poster_path"),
-                                backdrop_path=movie_data.get("backdrop_path"),
-                                popularity=movie_data.get("popularity"),
-                                vote_average=movie_data.get("vote_average"),
-                                vote_count=movie_data.get("vote_count"),
-                                release_date=movie_data.get("release_date") or None,
-                                runtime=runtime,
-                            )
+                            if not movie:
+                                movie = Movie(
+                                    tmdb_id=tmdb_id,
+                                    title=movie_data["title"],
+                                    overview=movie_data["overview"],
+                                    genres=movie_data["genre_ids"],
+                                    poster_path=movie_data.get("poster_path"),
+                                    backdrop_path=movie_data.get("backdrop_path"),
+                                    popularity=movie_data.get("popularity"),
+                                    vote_average=movie_data.get("vote_average"),
+                                    vote_count=movie_data.get("vote_count"),
+                                    release_date=movie_data.get("release_date") or None,
+                                    runtime=current_movie_runtime,
+                                )
                             db.add(movie)
+                            db.flush()
                         else:
-                            movie.runtime = runtime
-
-                        db.flush()  # Sync so we have movie.id for the mapping
+                            if current_movie_runtime is not None:
+                                movie.runtime = current_movie_runtime
 
                         # Category Mapping
                         existing_link = (

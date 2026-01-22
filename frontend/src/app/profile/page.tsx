@@ -111,7 +111,7 @@ export default function ProfilePage() {
       <div className="max-w-4xl mx-auto px-6 md:px-12 pt-12 pb-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center">
+          <div className="w-20 h-20 rounded-full bg-linear-to-br from-brand-primary to-brand-secondary flex items-center justify-center">
             <User size={40} className="text-black" />
           </div>
           <div>
@@ -255,7 +255,7 @@ export default function ProfilePage() {
                 </button>
                 <button
                   onClick={handleChangePassword}
-                  className="flex-1 py-3 bg-gradient-to-r from-brand-primary to-brand-secondary text-black rounded-xl font-bold hover:scale-105 transition-transform"
+                  className="flex-1 py-3 bg-linear-to-r from-brand-primary to-brand-secondary text-black rounded-xl font-bold hover:scale-105 transition-transform"
                 >
                   Change Password
                 </button>
